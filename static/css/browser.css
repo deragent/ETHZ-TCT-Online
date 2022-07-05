@@ -1,0 +1,105 @@
+/** Resizable Declarations **/
+* {
+  padding: 0;
+  margin: 0;
+  top: 0;
+  left: 0;
+}
+
+.contentWindow{
+  position: absolute;
+}
+
+.resizer{
+  position: absolute;
+  z-index: 100;
+  background-color: #4E6160;
+}
+
+.verticalResizer{
+  cursor: ns-resize;
+}
+
+.horizontalResizer{
+  cursor: ew-resize;
+}
+
+/** Icon Styles **/
+.svg-icon {
+  display:inline-block;
+  height: 20px;
+  width: 20px;
+  background-color: white;
+
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  position: relative;
+  top: 2px;
+}
+.svg-icon.arrow-repeat {
+  mask-image: url("../bootstrap-icons-1.8.3/arrow-repeat.svg");
+}
+.svg-icon.trash-fill {
+  mask-image: url("../bootstrap-icons-1.8.3/trash3-fill.svg");
+}
+
+/** General Style **/
+#main h1 {
+  display: block;
+  float: left;
+  padding: 5px;
+}
+
+#header .btn div {
+  margin-right: 5px;
+}
+
+#btn_clear {
+  margin: 10px 10px 10px 100px ;
+}
+
+#win_top {
+  display: flex;
+  flex-flow: column;
+}
+
+#dataset_list {
+  flex: 1;
+  overflow: auto;
+}
+#entry_list {
+  height: 100%;
+}
+
+/** Table Styling **/
+.filter_table table {
+  height: 100%;
+  overflow: scroll;
+}
+
+.filter_table thead th {
+  position: sticky;
+  top: 0;
+}
+
+tr.selected {
+  background-color: #88c9ef;
+}
+
+tr.checked {
+  background-color: #4bf2a1;
+}
+
+table thead input {
+  width: 95%;
+}
+
+/** Plot Styling **/
+#tct_plot {
+  height: 100%;
+}
