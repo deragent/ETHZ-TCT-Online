@@ -1,10 +1,11 @@
 var TCTBrowser = {
+  selected_dataset: null,
   dataset_table: {
     obj: null,
     columns: ['_prefix', 'laser', 'wafer', 'sample', 'side', 'operator'],
     data: {},
     onclick: function(){ console.log('test click'); },
-    selected: null,
+    isselected: function(id){ return false; },
   },
 
   scan_table: {
@@ -12,7 +13,7 @@ var TCTBrowser = {
     data: {},
     columns: [],
     onclick: function(){ console.log('test click'); },
-    selected: null,
+    isselected: function(id){ return false; },
   },
   plot: {
     obj: null,
@@ -47,28 +48,21 @@ function fillTable(table, filters) {
 
   var count = 0;
   $.each(table.data, function(id, item){
-    if(count >= MAX_COUNT) {
-      return;
-    }
+    if(count >= MAX_COUNT) return;
 
     // Apply the filters
     if(Object.keys(filters).length > 0) {
       var show = true;
 
       for(key in filters) {
-        value = id;
-        if(key != '_prefix') {
-          value = item[key]
-        }
+        value = (key != '_prefix' ? item[key] : id);
 
         if(!filters[key].test(value)) {
           show = false;
         }
       };
 
-      if(!show) {
-        return;
-      }
+      if(!show) return;
     }
 
     // Add the line to the table
@@ -82,8 +76,8 @@ function fillTable(table, filters) {
       }
     }
 
-    if(id == table.selected) {
-      tr.addClass('selected')
+    if(table.isselected(id)) {
+      tr.addClass('selected');
     }
 
     tr.appendTo(table.obj.find('tbody'));
@@ -117,6 +111,7 @@ function enableTableFilter(table) {
   });
 }
 
+
 // Plot functions
 function initPlot(plot) {
   Plotly.newPlot(plot.obj, [], {
@@ -143,11 +138,20 @@ function addTrace(plot, dataset, id, data) {
 
   plot.traces.push([dataset, id])
 }
-function removeTrace(plot, dataset, it) {
-  var idx = plot.traces.findIndex([dataset, id])
-  if(idx == -1) return;
+
+function findTrace(plot, dataset, id) {
+  return plot.traces.findIndex((item) => (item[0] == dataset && item[1] == id))
+}
+
+function isTrace(plot, dataset, id) {
+  return findTrace(plot, dataset, id) >= 0;
+}
+
+function removeTrace(plot, dataset, id) {
+  var idx = findTrace(plot, dataset, id);
 
   Plotly.deleteTraces(plot.obj, idx)
+  plot.traces.splice(idx, 1)
 }
 
 function clearPlot(plot) {
@@ -163,7 +167,7 @@ function selectDataset() {
   $(this).addClass('selected').siblings().removeClass('selected');
 
   var id = $($(this).children('td')[0]).html();
-  TCTBrowser.dataset_table.selected = id;
+  TCTBrowser.selected_dataset = id;
 
   $.getJSON("/dataset/"+id, function(data){
     TCTBrowser.scan_table.columns = data.changed_columns;
@@ -179,10 +183,9 @@ function selectScan() {
   $(this).addClass('selected');
 
   var id = $($(this).children('td')[0]).html();
-  TCTBrowser.scan_table.selected = id;
 
-  $.getJSON("/dataset/" + TCTBrowser.dataset_table.selected + '/' + id, function(data){
-    addTrace(TCTBrowser.plot, TCTBrowser.dataset_table.selected, id, data);
+  $.getJSON("/dataset/" + TCTBrowser.selected_dataset + '/' + id, function(data){
+    addTrace(TCTBrowser.plot, TCTBrowser.selected_dataset, id, data);
   });
 }
 
@@ -204,9 +207,15 @@ function init() {
 $(document).ready(function() {
   TCTBrowser.dataset_table.obj = $('#dataset_list > table');
   TCTBrowser.dataset_table.onclick = selectDataset;
+  TCTBrowser.dataset_table.isselected = function(id) {
+      return id == TCTBrowser.selected_dataset
+  };
 
   TCTBrowser.scan_table.obj = $('#entry_list > table');
   TCTBrowser.scan_table.onclick = selectScan;
+  TCTBrowser.scan_table.isselected = function(id) {
+    return isTrace(TCTBrowser.plot, TCTBrowser.selected_dataset, id);
+  };
 
   TCTBrowser.plot.obj = document.getElementById('tct_plot');
 
