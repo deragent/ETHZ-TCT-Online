@@ -155,9 +155,7 @@ function removeTrace(plot, dataset, id) {
 }
 
 function clearPlot(plot) {
-  for(tt in plot.traces) {
-    Plotly.deleteTraces(plot.obj, 0);
-  }
+  initPlot(plot);
   plot.traces = []
 }
 
@@ -180,13 +178,18 @@ function selectDataset() {
 }
 
 function selectScan() {
-  $(this).addClass('selected');
-
   var id = $($(this).children('td')[0]).html();
+  var dataset =  TCTBrowser.selected_dataset;
 
-  $.getJSON("/dataset/" + TCTBrowser.selected_dataset + '/' + id, function(data){
-    addTrace(TCTBrowser.plot, TCTBrowser.selected_dataset, id, data);
-  });
+  if(isTrace(TCTBrowser.plot, dataset, id)) {
+    removeTrace(TCTBrowser.plot, dataset, id);
+    $(this).removeClass('selected');
+  } else {
+    $.getJSON("/dataset/" + dataset + '/' + id, function(data){
+      addTrace(TCTBrowser.plot, dataset, id, data);
+    });
+    $(this).addClass('selected');
+  }
 }
 
 function loadDatasets() {
@@ -225,7 +228,6 @@ $(document).ready(function() {
   $('#btn_clear').click(function(){
     clearPlot(TCTBrowser.plot);
     TCTBrowser.scan_table.obj.find('tbody tr').removeClass('selected');
-    TCTBrowser.scan_table.selected = {}
   });
 
   initPlot(TCTBrowser.plot);
