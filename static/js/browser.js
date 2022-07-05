@@ -16,7 +16,7 @@ var TCTBrowser = {
   },
   plot: {
     obj: null,
-    traces: {},
+    traces: [],
   },
 };
 
@@ -141,13 +141,20 @@ function addTrace(plot, dataset, id, data) {
      }
   ]);
 
-  for(dd in plot.obj.data) {
-    console.log(plot.obj.data[dd]);
-  }
+  plot.traces.push([dataset, id])
+}
+function removeTrace(plot, dataset, it) {
+  var idx = plot.traces.findIndex([dataset, id])
+  if(idx == -1) return;
+
+  Plotly.deleteTraces(plot.obj, idx)
 }
 
 function clearPlot(plot) {
-  Plotly.deleteTraces(plot.obj);
+  for(tt in plot.traces) {
+    Plotly.deleteTraces(plot.obj, 0);
+  }
+  plot.traces = []
 }
 
 
@@ -169,7 +176,7 @@ function selectDataset() {
 }
 
 function selectScan() {
-  $(this).addClass('checked');
+  $(this).addClass('selected');
 
   var id = $($(this).children('td')[0]).html();
   TCTBrowser.scan_table.selected = id;
@@ -188,11 +195,11 @@ function loadDatasets() {
     });
 }
 
-
 function init() {
   createTable(TCTBrowser.dataset_table);
   loadDatasets();
 }
+
 
 $(document).ready(function() {
   TCTBrowser.dataset_table.obj = $('#dataset_list > table');
@@ -205,6 +212,11 @@ $(document).ready(function() {
 
   $('#btn_refresh').click(function(){
     $.get('/reload', init());
+  });
+  $('#btn_clear').click(function(){
+    clearPlot(TCTBrowser.plot);
+    TCTBrowser.scan_table.obj.find('tbody tr').removeClass('selected');
+    TCTBrowser.scan_table.selected = {}
   });
 
   initPlot(TCTBrowser.plot);

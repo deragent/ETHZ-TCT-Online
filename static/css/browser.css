@@ -87,11 +87,11 @@
   top: 0;
 }
 
-tr.selected {
+#dataset_list tr.selected {
   background-color: #88c9ef;
 }
 
-tr.checked {
+#entry_list tr.selected {
   background-color: #4bf2a1;
 }
 
