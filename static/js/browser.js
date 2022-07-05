@@ -167,7 +167,7 @@ function selectDataset() {
   var id = $($(this).children('td')[0]).html();
   TCTBrowser.selected_dataset = id;
 
-  $.getJSON("/dataset/"+id, function(data){
+  $.getJSON(BASE_URL + "dataset/"+id, function(data){
     TCTBrowser.scan_table.columns = data.changed_columns;
     TCTBrowser.scan_table.data = data.changed_data;
     TCTBrowser.scan_table.selected = null;
@@ -185,7 +185,7 @@ function selectScan() {
     removeTrace(TCTBrowser.plot, dataset, id);
     $(this).removeClass('selected');
   } else {
-    $.getJSON("/dataset/" + dataset + '/' + id, function(data){
+    $.getJSON(BASE_URL + "dataset/" + dataset + '/' + id, function(data){
       addTrace(TCTBrowser.plot, dataset, id, data);
     });
     $(this).addClass('selected');
@@ -193,7 +193,7 @@ function selectScan() {
 }
 
 function loadDatasets() {
-    $.getJSON("/dataset", function(data) {
+    $.getJSON(BASE_URL + "dataset", function(data) {
       TCTBrowser.dataset_table.data = data;
       fillTable(TCTBrowser.dataset_table, {});
 

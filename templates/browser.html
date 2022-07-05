@@ -9,6 +9,10 @@
 
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/browser.css') }}">
 
+    <script type="text/javascript" >
+      BASE_URL = "{{ url_for('browser') }}"
+    </script>
+
     <!-- From https://github.com/Tom-Rawlings/Resizable.js -->
 		<script src="{{ url_for('static', filename='js/resizable.js') }}"></script>
 
