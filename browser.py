@@ -1,12 +1,15 @@
 import flask
 from flask import Flask
 
-from analysis.data import DataDir
+from analysis.data import DataDirCollection
 
-dir = DataDir('../_data/P301401/')
+# Load the data sources from the config file
+with open('./sources.conf') as f:
+    sources = f.read().splitlines()
+
+dir = DataDirCollection(sources)
 
 app = Flask(__name__)
-
 
 def filterColumns(columns):
     HIDDEN_COLUMNS = [
@@ -35,6 +38,8 @@ def browser():
 @app.route("/reload")
 def reloadDatasets():
     dir.reload()
+
+    return {}
 
 @app.route("/dataset")
 def listDatasets():
