@@ -10,7 +10,7 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/browser.css') }}">
 
     <script type="text/javascript" >
-      BASE_URL = "{{ url_for('browser') }}"
+      BASE_URL = "{{ url_for('home') }}"
     </script>
 
     <!-- From https://github.com/Tom-Rawlings/Resizable.js -->
@@ -24,8 +24,11 @@
 
 			<div class="resizable-top" id="win_top">
         <div id="header">
-          <button id="btn_clear" class="btn btn-danger"><div class="svg-icon trash-fill"></div> Clear the Plot</button>
-          <button id="btn_refresh" class="btn btn-primary"><div class="svg-icon arrow-repeat"></div> Dataset Refresh</button>
+          <span id="header_buttons">
+            <a class="btn btn-info" href="{{ url_for('home') }}"><div class="svg-icon icon-home"></div> Home</a>
+            <button id="btn_clear" class="btn btn-danger"><div class="svg-icon icon-trash-fill"></div> Clear the Plot</button>
+            <button id="btn_refresh" class="btn btn-primary"><div class="svg-icon icon-arrow-repeat"></div> Dataset Refresh</button>
+          </span>
           <h1>Sensor TCT Data Browser</h1>
         </div>
 

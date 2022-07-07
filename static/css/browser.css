@@ -41,11 +41,14 @@
   position: relative;
   top: 2px;
 }
-.svg-icon.arrow-repeat {
+.svg-icon.icon-arrow-repeat {
   mask-image: url("../bootstrap-icons-1.8.3/arrow-repeat.svg");
 }
-.svg-icon.trash-fill {
+.svg-icon.icon-trash-fill {
   mask-image: url("../bootstrap-icons-1.8.3/trash3-fill.svg");
+}
+.svg-icon.icon-home {
+  mask-image: url("../bootstrap-icons-1.8.3/house.svg");
 }
 
 /** General Style **/
@@ -59,8 +62,12 @@
   margin-right: 5px;
 }
 
-#btn_clear {
-  margin: 10px 10px 10px 100px ;
+#header_buttons {
+  margin-left: 100px;
+}
+#header_buttons .btn {
+  margin: 10px;
+  color: white;
 }
 
 #win_top {

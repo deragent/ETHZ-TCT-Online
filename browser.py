@@ -32,6 +32,10 @@ def filterColumns(columns):
 
 
 @app.route("/")
+def home():
+    return flask.render_template('home.html')
+
+@app.route("/show/browser")
 def browser():
     return flask.render_template('browser.html')
 
