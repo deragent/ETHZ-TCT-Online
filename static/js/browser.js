@@ -223,7 +223,7 @@ $(document).ready(function() {
   TCTBrowser.plot.obj = document.getElementById('tct_plot');
 
   $('#btn_refresh').click(function(){
-    $.get('/reload', init);
+    $.get(BASE_URL + 'reload', init);
   });
   $('#btn_clear').click(function(){
     clearPlot(TCTBrowser.plot);
