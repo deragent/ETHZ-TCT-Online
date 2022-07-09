@@ -53,7 +53,7 @@ def listDatasets():
 def listEntries(dataset):
     scan = dir.scan(dataset)
     if scan is None:
-        return {}
+        flask.abort(404)
     df = scan.list()
 
     changed = (df != df.iloc[0]).any()
@@ -74,14 +74,14 @@ def listEntries(dataset):
 def getCurve(dataset, id):
     scan = dir.scan(dataset)
     if scan is None:
-        return {}
+        flask.abort(404)
 
     try:
         # We hardcode only return curve 0 for now
         data = scan.get(id).curve(0)
     except Exception as e:
         print(e)
-        return {}
+        flask.abort(404)
 
     return {
         'time': list(data[0, :]*1e9),
