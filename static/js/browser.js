@@ -177,6 +177,14 @@ function selectDataset() {
   });
 }
 
+function loadTrace(dataset, id) {
+  $.getJSON(BASE_URL + "dataset/" + dataset + '/' + id, function(data){
+    if(!$.isEmptyObject(data)) {
+      addTrace(TCTBrowser.plot, dataset, id, data);
+    }
+  });
+}
+
 function selectScan() {
   var id = $($(this).children('td')[0]).html();
   var dataset =  TCTBrowser.selected_dataset;
@@ -185,9 +193,7 @@ function selectScan() {
     removeTrace(TCTBrowser.plot, dataset, id);
     $(this).removeClass('selected');
   } else {
-    $.getJSON(BASE_URL + "dataset/" + dataset + '/' + id, function(data){
-      addTrace(TCTBrowser.plot, dataset, id, data);
-    });
+    loadTrace(dataset, id);
     $(this).addClass('selected');
   }
 }
@@ -201,9 +207,73 @@ function loadDatasets() {
     });
 }
 
+function parseHash() {
+  if(window.location.hash) {
+    var hash = decodeURI(window.location.hash.substring(1));
+    var data = null;
+
+    console.log(hash);
+
+    try {
+      data = JSON.parse(hash);
+      console.log(data);
+    }
+    catch(err) {
+      return;
+    }
+
+    for(dataset in data) {
+      for(ii in data[dataset]) {
+        loadTrace(dataset, data[dataset][ii]);
+      }
+    }
+  }
+}
+
+function createShareLink() {
+  var base = window.location.href.split("#")[0];
+  var selection = {}
+  for(tt in TCTBrowser.plot.traces) {
+    var entry = TCTBrowser.plot.traces[tt];
+    var dataset = entry[0];
+    var id = entry[1];
+
+    if(!(dataset in selection)) {
+      selection[dataset] = [];
+    }
+
+    selection[dataset].push(id);
+  }
+
+  return base + '#' + encodeURI(JSON.stringify(selection));
+}
+
 function init() {
+  initPlot(TCTBrowser.plot);
+
   createTable(TCTBrowser.dataset_table);
   loadDatasets();
+  parseHash();
+}
+
+
+function copyToClipboard(textToCopy) {
+    if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(textToCopy);
+    } else {
+        // text area method
+        var textArea = document.createElement("textarea");
+        textArea.value = textToCopy;
+        textArea.style.position = "absolute";
+        textArea.style.opacity = 0;
+        document.body.appendChild(textArea);
+        textArea.select();
+        return new Promise((res, rej) => {
+            // here the magic happens
+            document.execCommand('copy') ? res() : rej();
+            textArea.remove();
+        });
+    }
 }
 
 
@@ -229,7 +299,9 @@ $(document).ready(function() {
     clearPlot(TCTBrowser.plot);
     TCTBrowser.scan_table.obj.find('tbody tr').removeClass('selected');
   });
+  $('#btn_share').click(function(){
+    copyToClipboard(createShareLink());
+  });
 
-  initPlot(TCTBrowser.plot);
   init();
 });
