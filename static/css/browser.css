@@ -50,6 +50,9 @@
 .svg-icon.icon-home {
   mask-image: url("../bootstrap-icons-1.8.3/house.svg");
 }
+.svg-icon.icon-clipboard {
+  mask-image: url("../bootstrap-icons-1.8.3/clipboard.svg");
+}
 
 /** General Style **/
 #main h1 {
