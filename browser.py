@@ -18,6 +18,9 @@ def filterColumns(columns):
       "stage.status.",
       "amp.current",
       "bias.current",
+      "temp.stage.temperature",
+      "temp.holder.humidity",
+      "temp.holder.temperature",
     ]
 
     output = []
