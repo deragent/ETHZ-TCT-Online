@@ -97,6 +97,13 @@
   top: 0;
 }
 
+.filter_table tr.note {
+  font-style: italic;
+}
+.filter_table tr.entry {
+  cursor: pointer;
+}
+
 #dataset_list tr.selected {
   background-color: #88c9ef;
 }
