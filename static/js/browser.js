@@ -39,11 +39,19 @@ function initPlot(plot) {
 }
 
 function addTrace(plot, dataset, id, data) {
+  var label = dataset + "[" + id + "]:";
+  var scan = TCTBrowser.scan_table.data[id]
+  for(key in scan) {
+    if(key == '_prefix') continue;
+
+    label += ' / ' + key + '=' + scan[key];
+  }
+
   Plotly.addTraces(plot.obj, [
     {
       x: data.time,
       y: data.amplitude,
-      name: dataset + ": " + id,
+      name: label,
      }
   ]);
 
