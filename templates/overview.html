@@ -16,7 +16,7 @@
     <!-- From https://github.com/Tom-Rawlings/Resizable.js -->
 		<script src="{{ url_for('static', filename='js/resizable.js') }}"></script>
 
-    <title>Sensor TCT Waveform Browser</title>
+    <title>Sensor TCT Dataset Overview</title>
   </head>
   <body>
 
@@ -26,8 +26,7 @@
         <div id="header">
           <span id="header_buttons">
             <a class="btn btn-info" href="{{ url_for('home') }}"><div class="svg-icon icon-home"></div> Home</a>
-            <button id="btn_clear" class="btn btn-danger"><div class="svg-icon icon-trash-fill"></div> Clear the Plot</button>
-            <button id="btn_share" class="btn btn-success"><div class="svg-icon icon-clipboard"></div> Copy Plot URL</button>
+            <!-- <button id="btn_share" class="btn btn-success"><div class="svg-icon icon-clipboard"></div> Copy Plot URL</button> -->
             <button id="btn_refresh" class="btn btn-primary"><div class="svg-icon icon-arrow-repeat"></div> Dataset Refresh</button>
           </span>
           <h1>Sensor TCT Data Browser</h1>
@@ -46,18 +45,22 @@
 			<div class="resizable-bottom" id="win_bottom">
 
         <div class="resizable-left" id="win_left">
-          <div id="entry_list" class="table-responsive filter_table" >
-            <table class="table table-sm table-hover table-striped">
-              <thead class="table-dark">
-              </thead>
-              <tbody>
-              </tbody>
-            </table>
+          <div id="dataset_info">
+            <h4>Measurement Info</h3>
+            <table></table>
+          </div>
+          <div id="dataset_param">
+            <h4>Scan Parameters</h3>
+          </div>
+          <div id="dataset_plots">
+            <h4>Available Plot Files</h3>
+            <ul class="list-group list-group">
+            </ul>
           </div>
         </div>
 
         <div class="resizable-right" id="win_right">
-          <div id="tct_plot" ></div>
+          <div id="plot_view" ></div>
         </div>
 
       </div>
@@ -72,8 +75,8 @@
   			var sizes = {
   				"win_top" : 0.28,
   				"win_bottom" : 0.72,
-  				"win_left" : 0.25,
-  				"win_right" : 0.75,
+  				"win_left" : 0.5,
+  				"win_right" : 0.5,
   			};
 
   			Resizable.initialise("main", sizes, 2);
@@ -98,7 +101,7 @@
     <script src="https://cdn.plot.ly/plotly-2.12.1.min.js"></script>
 
     <script src="{{ url_for('static', filename='js/filterTable.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/browser.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/overview.js') }}"></script>
 
   </body>
 </html>

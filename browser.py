@@ -42,6 +42,10 @@ def home():
 def browser():
     return flask.render_template('browser.html')
 
+@app.route("/show/overview")
+def overview():
+    return flask.render_template('overview.html')
+
 @app.route("/reload")
 def reloadDatasets():
     dir.reload()
@@ -71,7 +75,28 @@ def listEntries(dataset):
         'changed_columns': changed_columns,
         'changed_data': changed_data.to_dict(orient='index'),
         'common_data': common_data.to_dict(),
+        'info': scan.info(),
     }
+
+@app.route("/dataset/<dataset>/plot")
+def listPlots(dataset):
+    scan = dir.scan(dataset)
+    if scan is None:
+        flask.abort(404)
+
+    return {'plots': scan.plots()}
+
+@app.route("/dataset/<dataset>/plot/<int:idx>")
+def showPlot(dataset, idx):
+    scan = dir.scan(dataset)
+    if scan is None:
+        flask.abort(404)
+
+    plots = scan.plots()
+    if idx < 0 or idx >= len(plots):
+        flask.abort(404)
+
+    return flask.send_file(scan.plotFile(plots[idx]))
 
 @app.route("/dataset/<dataset>/<int:id>")
 def getCurve(dataset, id):
