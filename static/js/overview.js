@@ -48,13 +48,17 @@ function selectDataset() {
       var list = $('#dataset_plots ul');
       list.empty();
 
-      for(idx in data_plots.plots) {
+      for(var idx in data_plots.plots) {
         var li = $('<li>').addClass('list-group-item')
           .text(data_plots.plots[idx]);
 
-        li.click(function() {
-          showPlotFile(id, idx);
-        });
+        // We manually create a new scope to capture the value of idx!
+        (function (idx)
+        {
+          li.click(function() {
+            showPlotFile(id, idx);
+          });
+        }) (idx);
 
         li.appendTo(list)
       }
