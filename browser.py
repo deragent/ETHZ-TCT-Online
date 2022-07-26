@@ -76,6 +76,7 @@ def listEntries(dataset):
         'changed_data': changed_data.to_dict(orient='index'),
         'common_data': common_data.to_dict(),
         'info': scan.info(),
+        'config_file': scan.configStr(),
     }
 
 @app.route("/dataset/<dataset>/plot")
