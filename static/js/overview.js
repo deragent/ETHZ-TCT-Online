@@ -44,6 +44,25 @@ function selectDataset() {
       tr.appendTo(info);
     }
 
+    // Add list of scan parameters
+    var tr = $('<tr>');
+    tr.append($('<td>').text('scan-parameters'));
+    var text = '';
+    for(key in data.changed_columns) {
+      if(data.changed_columns[key] != '_prefix') {
+        text += data.changed_columns[key];
+        if(key < data.changed_columns.length-1) {
+          text += ' / ';
+        }
+      }
+    }
+    tr.append($('<td>').text(text));
+    tr.appendTo(info);
+
+    // Present
+    var config = $('#dataset_config code');
+    config.text(data.config_file);
+
     $.getJSON(BASE_URL + "dataset/"+id+"/plot", function(data_plots){
       var list = $('#dataset_plots ul');
       list.empty();
