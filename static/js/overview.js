@@ -1,4 +1,4 @@
-var TCTOverivew = {
+var TCTOverview = {
   selected_dataset: null,
   dataset_table: {
     obj: null,
@@ -28,11 +28,16 @@ function selectDataset() {
   $(this).addClass('selected').siblings().removeClass('selected');
 
   var id = $($(this).children('td')[0]).html();
-  TCTOverivew.selected_dataset = id;
 
-  // showPlotFile(id, 0);
+  return showDataset(id);
+}
+
+function showDataset(id) {
+  TCTOverview.selected_dataset = id;
 
   $.getJSON(BASE_URL + "dataset/"+id, function(data){
+
+    $('#dataset_info span.share_link a').attr('href', createShareLink()).text(id);
 
     var info = $('#dataset_info table');
     info.empty();
@@ -87,25 +92,45 @@ function selectDataset() {
 
 function loadDatasets() {
     $.getJSON(BASE_URL + "dataset", function(data) {
-      TCTOverivew.dataset_table.data = data;
-      fillTable(TCTOverivew.dataset_table, {});
+      TCTOverview.dataset_table.data = data;
+      fillTable(TCTOverview.dataset_table, {});
 
-      resetFilter(TCTOverivew.dataset_table)
+      resetFilter(TCTOverview.dataset_table)
     });
 }
 
+function parseHash() {
+  if(window.location.hash) {
+    var hash = decodeURI(window.location.hash.substring(1));
+    console.log(hash);
+
+    try {
+      showDataset(hash);
+    }
+    catch(err) {
+      return;
+    }
+  }
+}
+
+function createShareLink() {
+  var base = window.location.href.split("#")[0];
+
+  return base + '#' + TCTOverview.selected_dataset;
+}
+
 function init() {
-  createTable(TCTOverivew.dataset_table);
+  createTable(TCTOverview.dataset_table);
   loadDatasets();
-  // parseHash();
+  parseHash();
 }
 
 
 $(document).ready(function() {
-  TCTOverivew.dataset_table.obj = $('#dataset_list > table');
-  TCTOverivew.dataset_table.onclick = selectDataset;
-  TCTOverivew.dataset_table.isselected = function(id) {
-      return id == TCTOverivew.selected_dataset
+  TCTOverview.dataset_table.obj = $('#dataset_list > table');
+  TCTOverview.dataset_table.onclick = selectDataset;
+  TCTOverview.dataset_table.isselected = function(id) {
+      return id == TCTOverview.selected_dataset
   };
 
   $('#btn_refresh').click(function(){
