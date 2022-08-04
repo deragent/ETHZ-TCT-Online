@@ -1,13 +1,68 @@
 import flask
 from flask import Flask
 
+import time
+import os, os.path
+import filelock
+
 from analysis.data import DataDirCollection
+
+class SyncCache():
+
+    def __init__(self, obj):
+
+        self._obj = obj
+        self._obj_ts = -1
+
+        self._ts_file = f'/tmp/tct-browser-cache-{os.getppid()}.ts'
+        self._ts_file_lock = filelock.FileLock(self._ts_file + '.lock')
+
+        with self._ts_file_lock:
+            # Create the empty ts file if it does not exist
+            if not os.path.exists(self._ts_file):
+                with open(self._ts_file, 'w') as ts_file:
+                    ts_file.write('-1')
+
+
+    def _makeValid(self):
+        valid = True
+        with self._ts_file_lock:
+            with open(self._ts_file, 'r') as ts_file:
+                try:
+                    ts = float(ts_file.read())
+
+                    # If ts is newer than ours, we reload too
+                    if ts > self._obj_ts:
+                        print(f'{os.getpid()}: Not valid anymore: Reload!')
+
+                        self._obj.reload()
+                        self._obj_ts = ts
+
+                except ValueError:
+                    self._invalidateNoLock()
+
+    def _invalidateNoLock(self):
+        self._obj.reload()
+        with open(self._ts_file, 'w') as ts_file:
+            self._obj_ts = time.time()
+            ts_file.write(f'{self._obj_ts}')
+
+    def get(self):
+        self._makeValid()
+
+        return self._obj
+
+    def reload(self):
+        with self._ts_file_lock:
+            print(f'{os.getpid()}: Reload requested!')
+            self._invalidateNoLock()
+
 
 # Load the data sources from the config file
 with open('./sources.conf') as f:
     sources = f.read().splitlines()
 
-dir = DataDirCollection(sources)
+cache = SyncCache(DataDirCollection(sources))
 
 app = Flask(__name__)
 
@@ -50,17 +105,17 @@ def overview():
 
 @app.route("/reload")
 def reloadDatasets():
-    dir.reload()
+    cache.reload()
 
     return {}
 
 @app.route("/dataset")
 def listDatasets():
-    return dir.scans().to_dict(orient='index')
+    return cache.get().scans().to_dict(orient='index')
 
 @app.route("/dataset/<dataset>")
 def listEntries(dataset):
-    scan = dir.scan(dataset)
+    scan = cache.get().scan(dataset)
     if scan is None:
         flask.abort(404)
     df = scan.list()
@@ -83,7 +138,7 @@ def listEntries(dataset):
 
 @app.route("/dataset/<dataset>/plot")
 def listPlots(dataset):
-    scan = dir.scan(dataset)
+    scan = cache.get().scan(dataset)
     if scan is None:
         flask.abort(404)
 
@@ -91,7 +146,7 @@ def listPlots(dataset):
 
 @app.route("/dataset/<dataset>/plot/<int:idx>")
 def showPlot(dataset, idx):
-    scan = dir.scan(dataset)
+    scan = cache.get().scan(dataset)
     if scan is None:
         flask.abort(404)
 
@@ -103,7 +158,7 @@ def showPlot(dataset, idx):
 
 @app.route("/dataset/<dataset>/<int:id>")
 def getCurve(dataset, id):
-    scan = dir.scan(dataset)
+    scan = cache.get().scan(dataset)
     if scan is None:
         flask.abort(404)
 
