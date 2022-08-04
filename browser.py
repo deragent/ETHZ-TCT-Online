@@ -21,6 +21,8 @@ def filterColumns(columns):
       "temp.stage.temperature",
       "temp.holder.humidity",
       "temp.holder.temperature",
+      "scope.amplitude",
+      "amp.voltage",
     ]
 
     output = []
