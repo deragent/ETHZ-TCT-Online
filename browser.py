@@ -4,6 +4,7 @@ from flask import Flask
 import time
 import os, os.path
 import filelock
+import subprocess
 
 from analysis.data import DataDirCollection
 
@@ -135,6 +136,29 @@ def listEntries(dataset):
         'info': scan.info(),
         'config_file': scan.configStr(),
     }
+
+def datasetZipGenerator(folder):
+    zip_proc = subprocess.Popen(
+        ['zip', '-r', '-0', '-', folder.name],
+        cwd=folder.parents[0],
+        stdout=subprocess.PIPE, stderr=subprocess.DEVNULL
+    )
+    while True:
+        buf = zip_proc.stdout.read(4096)
+        if len(buf) == 0:
+            break
+        yield buf
+
+@app.route("/dataset/<dataset>/download")
+def downloadDataset(dataset):
+    scan = cache.get().scan(dataset)
+    if scan is None:
+        flask.abort(404)
+
+    response = flask.Response(flask.stream_with_context(datasetZipGenerator(scan.folder)), mimetype='application/zip')
+    response.headers['Content-Disposition'] = f'attachment; filename={dataset}.zip'
+    return response
+
 
 @app.route("/dataset/<dataset>/plot")
 def listPlots(dataset):
