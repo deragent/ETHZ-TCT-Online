@@ -38,6 +38,7 @@ function showDataset(id) {
   $.getJSON(BASE_URL + "dataset/"+id, function(data){
 
     $('#dataset_info span.share_link a').attr('href', createShareLink()).text(id);
+    $('#dataset_info span.download_link a').attr('href', BASE_URL+"dataset/"+id+"/download").text('Download');
 
     var info = $('#dataset_info table');
     info.empty();
