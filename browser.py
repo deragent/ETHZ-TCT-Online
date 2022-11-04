@@ -6,7 +6,13 @@ import os, os.path
 import filelock
 import subprocess
 
+import numpy as np
+
 from analysis.data import DataDirCollection
+
+from analysis.simulation.signal import Run2_PNBonded
+from analysis.simulation.signal.util import charge
+
 
 class SyncCache():
 
@@ -63,6 +69,8 @@ class SyncCache():
 with open('./sources.conf') as f:
     sources = f.read().splitlines()
 
+sources = [source for source in sources if not source.startswith('# ')]
+
 cache = SyncCache(DataDirCollection(sources))
 
 app = Flask(__name__)
@@ -103,6 +111,10 @@ def browser():
 @app.route("/show/overview")
 def overview():
     return flask.render_template('overview.html')
+
+@app.route("/show/simulation")
+def simulation():
+    return flask.render_template('simulation.html')
 
 @app.route("/reload")
 def reloadDatasets():
@@ -180,8 +192,7 @@ def showPlot(dataset, idx):
 
     return flask.send_file(scan.plotFile(plots[idx]))
 
-@app.route("/dataset/<dataset>/<int:id>")
-def getCurve(dataset, id):
+def getCurveData(dataset, id):
     scan = cache.get().scan(dataset)
     if scan is None:
         flask.abort(404)
@@ -193,7 +204,88 @@ def getCurve(dataset, id):
         print(e)
         flask.abort(404)
 
+    return data
+
+
+@app.route("/dataset/<dataset>/<int:id>")
+def getCurve(dataset, id):
+    data = getCurveData(dataset, id)
+
     return {
         'time': list(data[0, :]*1e9),
         'amplitude': list(data[1, :]*1e3),
+    }
+
+
+def runSimulation(Vbias, Na, Neh, pos, C):
+    sim = Run2_PNBonded.createChargePropagationSimulation(Vbias, Na=Na)
+
+    charges = charge.normal(Neh, pos, 10.7e-6)
+
+    total = sim.run(charges, retEH=False)
+    total = total.resample(50e-12)
+
+    R = 50
+    fc = 1/(2*np.pi*C*R)
+    gain = 50*(10**(53/20))
+    return total.filterLowPass(fc, gain)
+
+@app.route("/simulation/compare/<dataset>/<int:id>")
+def compareSimulation(dataset, id):
+    # Set default parameters
+    param = {
+        # Data Parameters
+        'T0': 18.15e-9,         # s
+        'offset': -12e-3,        # V
+
+        # Simulation Parameters
+        'Na': 7e17,             # m⁻³
+        'Vbias': 200,           # V
+        'C': 23e-12,            # F
+        'Neh': 8e5,             # [-]
+        'Laser': -200e-6        # m
+    }
+
+    ## Probably handle this in the frontend!
+    # factors = {
+    #     'T0': 1e-9,             # ns -> s
+    #     'offset': 1e-3,         # mV -> V
+    #     'Na': 1e6,              # cm⁻³ -> m⁻³
+    #     'VBias': 1,
+    #     'C': 1e-12,             # pF -> F
+    #     'Neh': 1,
+    #     'Laser': 1e-6           # um -> m
+    # }
+
+    # Get parameters from request
+    for key in param:
+        param[key] = flask.request.args.get(key, default=param[key], type=float)
+
+    # Get the curve data
+    data = getCurveData(dataset, id)
+
+    time = data[0, :]
+    amplitude = data[1, :]
+
+    # Apply T0 and offset to data
+    time -= param['T0']
+    amplitude -= param['offset']
+
+    # Run simulation
+    total = runSimulation(param['Vbias'], param['Na'], param['Neh'], param['Laser'], param['C'])
+
+    # Calculate difference
+    data_start = np.argmax(time >= total.time()[0])
+    data_sel = range(data_start, data_start+len(total.time()))
+
+    sim_amplitude = np.zeros(amplitude.shape)
+    sim_amplitude[data_sel] = -1*total.signal()
+
+    difference = amplitude - sim_amplitude
+
+    return {
+        'time': list(time*1e9),
+        'amplitude': list(amplitude*1e3),
+        'simulation': list(sim_amplitude*1e3),
+        'difference': list(difference*1e3),
     }
