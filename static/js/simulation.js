@@ -19,6 +19,7 @@ var TCTBrowser = {
     obj: null,
     trace: null
   },
+  sliders: {},
 };
 
 
@@ -65,11 +66,18 @@ function addSimulationTrace(plot, data) {
       x: data.time,
       y: data.simulation,
       name: 'Simulation',
+      line: {
+        color: 'Black'
+      }
     },
     {
       x: data.time,
       y: data.difference,
       name: 'Difference',
+      line: {
+        color: 'Black',
+        dash: 'dot',
+      }
     }
   ]);
 }
@@ -97,9 +105,12 @@ function selectDataset() {
 }
 
 function runSimulation(dataset, id, param) {
-  // TODO handle parameters
-  $.getJSON(BASE_URL + "simulation/compare/" + dataset + '/' + id, function(data){
+  $.getJSON(BASE_URL + "simulation/compare/" + dataset + '/' + id, param, function(data){
     if(!$.isEmptyObject(data)) {
+      while(TCTBrowser.plot.obj.data.length>0)
+      {
+            Plotly.deleteTraces(TCTBrowser.plot.obj, [0]);
+      }
       addDataTrace(TCTBrowser.plot, dataset, id, data);
       addSimulationTrace(TCTBrowser.plot, data);
     }
@@ -114,14 +125,13 @@ function selectScan() {
 
   // TODO Update Initial Parameters
 
-  // TODO Pass parameters
-  runSimulation(dataset, id, {})
-
   // Select & Deselct the scans
   TCTBrowser.scan_table.obj.find('tbody tr').removeClass('selected');
 
   TCTBrowser.plot.trace = [dataset, id]
   $(this).addClass('selected');
+
+  sliderCallback();
 }
 
 function loadDatasets() {
@@ -176,6 +186,20 @@ function loadDatasets() {
 //   return base + '#' + encodeURI(JSON.stringify(selection));
 // }
 
+function sliderCallback() {
+  // TODO Collect all parameters
+  var param = {};
+  for (var key in TCTBrowser.sliders) {
+    param[key] = SliderValue(TCTBrowser.sliders[key])
+  }
+
+  if(!TCTBrowser.plot.trace) {
+    return;
+  }
+
+  runSimulation(TCTBrowser.plot.trace[0], TCTBrowser.plot.trace[1], param);
+}
+
 function init() {
   initPlot(TCTBrowser.plot);
 
@@ -205,6 +229,20 @@ function init() {
 // }
 
 
+function initSliders() {
+  // Data Parameters
+  TCTBrowser.sliders['T0'] = SliderInit($('#param_t0'), [-10, 40], 18.0, 0.1, sliderCallback, 1e-9, 'T0', 'ns');
+  TCTBrowser.sliders['offset'] = SliderInit($('#param_offset'), [-20, 20], -12.0, 0.1, sliderCallback, 1e-3, 'Offset', 'mV');
+
+  // Simulation Parameters
+  TCTBrowser.sliders['Na'] = SliderInit($('#param_na'), [-2, 12], 7, 0.1, sliderCallback, 1e17, 'Na', '10¹¹ cm⁻³');
+  TCTBrowser.sliders['Vbias'] = SliderInit($('#param_bias'), [0, 650], 200, 1, sliderCallback, 1, 'VBias', 'V');
+  TCTBrowser.sliders['C'] = SliderInit($('#param_c'), [1, 100], 23.0, 0.5, sliderCallback, 1e-12, 'Cp', 'pF');
+  TCTBrowser.sliders['Neh'] = SliderInit($('#param_neh'), [0.5, 20], 8, 0.1, sliderCallback, 1e5, 'Neh', '10⁵');
+  TCTBrowser.sliders['Laser'] = SliderInit($('#param_laser'), [-500, 0], -200.0, 1, sliderCallback, 1e-6, 'Position', 'um');
+}
+
+
 $(document).ready(function() {
   TCTBrowser.dataset_table.obj = $('#dataset_list > table');
   TCTBrowser.dataset_table.onclick = selectDataset;
@@ -220,6 +258,8 @@ $(document).ready(function() {
   };
 
   TCTBrowser.plot.obj = document.getElementById('tct_plot');
+
+  initSliders();
 
   $('#btn_refresh').click(function(){
     $.get(BASE_URL + 'reload', init);

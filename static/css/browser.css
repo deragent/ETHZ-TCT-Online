@@ -153,3 +153,9 @@ table thead input {
 #plot_view {
   height: 100%;
 }
+
+/** Slider Styling **/
+#sliders_data, #sliders_sim {
+  margin-top: 5px;
+  margin-bottom: 10px;
+}
