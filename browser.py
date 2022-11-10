@@ -285,7 +285,15 @@ def compareSimulation(dataset, id):
 
     return {
         'time': list(time*1e9),
-        'amplitude': list(amplitude*1e3),
+        'data': list(amplitude*1e3),
         'simulation': list(sim_amplitude*1e3),
         'difference': list(difference*1e3),
+        'integral': {
+            'data': np.trapz(amplitude, time)*1e9,
+            'simulation': np.trapz(sim_amplitude, time)*1e9,
+            'difference': np.trapz(difference, time)*1e9,
+        },
+        'meta': {
+            'parameter': param,
+        }
     }

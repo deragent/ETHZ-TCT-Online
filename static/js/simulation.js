@@ -51,10 +51,14 @@ function addDataTrace(plot, dataset, id, data) {
   Plotly.addTraces(plot.obj, [
     {
       x: data.time,
-      y: data.amplitude,
-      name: label,
+      y: data.data,
+      name: 'Data (' + data.integral.data.toFixed(2) + ' Vns)',
      }
   ]);
+
+  Plotly.relayout(plot.obj, {
+    title: 'Recorded Waveform vs. Simulation [' + label + ']'
+  });
 }
 
 function addSimulationTrace(plot, data) {
@@ -65,7 +69,7 @@ function addSimulationTrace(plot, data) {
     {
       x: data.time,
       y: data.simulation,
-      name: 'Simulation',
+      name: 'Simulation (' + data.integral.simulation.toFixed(2) + ' Vns)',
       line: {
         color: 'Black'
       }
@@ -73,7 +77,7 @@ function addSimulationTrace(plot, data) {
     {
       x: data.time,
       y: data.difference,
-      name: 'Difference',
+      name: 'Difference (' + data.integral.difference.toFixed(2) + ' Vns)',
       line: {
         color: 'Black',
         dash: 'dot',
