@@ -217,10 +217,18 @@ def getCurve(dataset, id):
     }
 
 
-def runSimulation(Vbias, Na, Neh, pos, C):
+def runSimulation(type, Vbias, Na, Neh, pos, C):
     sim = Run2_PNBonded.createChargePropagationSimulation(Vbias, Na=Na)
 
-    charges = charge.normal(Neh, pos, 10.7e-6)
+    if type == 'p-red':
+        # From absorption coef of wavelength of 660nm: https://refractiveindex.info/?shelf=main&book=Si&page=Aspnes
+        charges = charge.exponential(Neh, -503e-6, 3.4148e-6)
+    elif type == 'p-alpha':
+        # Penetration depth assumed ca. 30um (from "Roadmap for High Efficiency Solid-State Neutron Detectors (2005)")
+        # Assume somehow exponential distribution with peak at penetration depth
+        charges = charge.exponential(Neh, -503e-6 + 30e-6, -6e-6)
+    else: # 'edge-ir'
+        charges = charge.normal(Neh, pos, 10.7e-6)
 
     total = sim.run(charges, retEH=False)
     total = total.resample(50e-12)
@@ -232,6 +240,8 @@ def runSimulation(Vbias, Na, Neh, pos, C):
 
 @app.route("/simulation/compare/<dataset>/<int:id>")
 def compareSimulation(dataset, id):
+    TYPES = ['edge-ir', 'p-red', 'p-alpha']
+
     # Set default parameters
     param = {
         # Data Parameters
@@ -239,8 +249,9 @@ def compareSimulation(dataset, id):
         'offset': -12e-3,        # V
 
         # Simulation Parameters
+        'type': TYPES[0],        # Default: 'edge-ir'
         'Na': 7e17,             # m⁻³
-        'Vbias': 200,           # V
+        'Vbias': 200.0,           # V
         'C': 23e-12,            # F
         'Neh': 8e5,             # [-]
         'Laser': -200e-6        # m
@@ -259,7 +270,13 @@ def compareSimulation(dataset, id):
 
     # Get parameters from request
     for key in param:
-        param[key] = flask.request.args.get(key, default=param[key], type=float)
+        if type(param[key]) == float:
+            param[key] = flask.request.args.get(key, default=param[key], type=float)
+        else:
+            param[key] = flask.request.args.get(key, default=param[key], type=str)
+
+    if param['type'] not in TYPES:
+        param['type'] = TYPES[0]
 
     # Get the curve data
     data = getCurveData(dataset, id)
@@ -272,7 +289,7 @@ def compareSimulation(dataset, id):
     amplitude -= param['offset']
 
     # Run simulation
-    total = runSimulation(param['Vbias'], param['Na'], param['Neh'], param['Laser'], param['C'])
+    total = runSimulation(param['type'], param['Vbias'], param['Na'], param['Neh'], param['Laser'], param['C'])
 
     # Calculate difference
     data_start = np.argmax(time >= total.time()[0])
