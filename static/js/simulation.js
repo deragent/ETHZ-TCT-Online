@@ -20,6 +20,7 @@ var TCTBrowser = {
     trace: null
   },
   sliders: {},
+  select: {},
 };
 
 
@@ -196,6 +197,10 @@ function sliderCallback() {
   for (var key in TCTBrowser.sliders) {
     param[key] = SliderValue(TCTBrowser.sliders[key])
   }
+  for (var key in TCTBrowser.select) {
+    param[key] = SelectValue(TCTBrowser.select[key])
+  }
+
 
   if(!TCTBrowser.plot.trace) {
     return;
@@ -239,6 +244,13 @@ function initSliders() {
   TCTBrowser.sliders['offset'] = SliderInit($('#param_offset'), [-20, 20], -12.0, 0.1, sliderCallback, 1e-3, 'Offset', 'mV');
 
   // Simulation Parameters
+  var types = [
+    {val: 'edge-ir', text: 'IR Edge TCT'},
+    {val: 'p-red', text: 'Red P-Side TCT'},
+    {val: 'p-alpha', text: 'AM-241 Source P-Side'},
+  ];
+  TCTBrowser.select['type'] = SelectInit($('#param_type'), types, 'edge-ir', sliderCallback, 'Type');
+
   TCTBrowser.sliders['Na'] = SliderInit($('#param_na'), [-2, 12], 7, 0.1, sliderCallback, 1e17, 'Na', '10¹¹ cm⁻³');
   TCTBrowser.sliders['Vbias'] = SliderInit($('#param_bias'), [0, 650], 200, 1, sliderCallback, 1, 'VBias', 'V');
   TCTBrowser.sliders['C'] = SliderInit($('#param_c'), [1, 100], 23.0, 0.5, sliderCallback, 1e-12, 'Cp', 'pF');
