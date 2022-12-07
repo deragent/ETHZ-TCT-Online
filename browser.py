@@ -293,10 +293,16 @@ def compareSimulation(dataset, id):
 
     # Calculate difference
     data_start = np.argmax(time >= total.time()[0])
-    data_sel = range(data_start, data_start+len(total.time()))
+
+    # Calculate maximum number of simulation sample to use
+    n_sim = len(total.time())
+    if data_start + n_sim > len(amplitude):
+        n_sim = len(amplitude) - data_start
+
+    data_sel = range(data_start, data_start+n_sim)
 
     sim_amplitude = np.zeros(amplitude.shape)
-    sim_amplitude[data_sel] = -1*total.signal()
+    sim_amplitude[data_sel] = -1*total.signal()[0:n_sim]
 
     difference = amplitude - sim_amplitude
 
