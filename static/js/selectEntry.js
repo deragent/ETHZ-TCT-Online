@@ -40,6 +40,10 @@ function SelectInit(dom_obj, value_choices, value_default, select_cb, label='') 
   return entry;
 }
 
+function SelectSetValue(select, value) {
+  $('select', select.obj).val(value);
+}
+
 function SelectValue(select) {
   return $('select', select.obj).val();
 }

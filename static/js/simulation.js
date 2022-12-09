@@ -93,10 +93,20 @@ function clearPlot(plot) {
 
 
 // Event handling functions
-function selectDataset() {
-  $(this).addClass('selected').siblings().removeClass('selected');
-
+function clickDataset() {
   var id = $($(this).children('td')[0]).html();
+
+  selectDataset(id);
+}
+
+function selectDataset(id, cb=null) {
+  $('tr', TCTBrowser.dataset_table.obj).each(function(){
+    if($('td', this).first().html() == id) {
+      $(this).addClass('selected').siblings().removeClass('selected');
+      return false;
+    }
+  });
+
   TCTBrowser.selected_dataset = id;
 
   $.getJSON(BASE_URL + "dataset/"+id, function(data){
@@ -106,6 +116,10 @@ function selectDataset() {
 
     createTable(TCTBrowser.scan_table);
     fillTable(TCTBrowser.scan_table, {});
+
+    if(cb != null) {
+      cb();
+    }
   });
 }
 
@@ -122,8 +136,13 @@ function runSimulation(dataset, id, param) {
   });
 }
 
-function selectScan() {
-  var id = $($(this).children('td')[0]).html();
+function clickScan() {
+  var id = $('td', this).first().html();
+
+  selectScan(id);
+}
+
+function selectScan(id) {
   var dataset =  TCTBrowser.selected_dataset;
 
   clearPlot(TCTBrowser.plot)
@@ -131,10 +150,14 @@ function selectScan() {
   // TODO Update Initial Parameters
 
   // Select & Deselct the scans
-  TCTBrowser.scan_table.obj.find('tbody tr').removeClass('selected');
+  $('tr', TCTBrowser.scan_table.obj).each(function(){
+    if($('td', this).first().html() == id) {
+      $(this).addClass('selected').siblings().removeClass('selected');
+      return false;
+    }
+  });
 
   TCTBrowser.plot.trace = [dataset, id]
-  $(this).addClass('selected');
 
   sliderCallback();
 }
@@ -148,57 +171,67 @@ function loadDatasets() {
     });
 }
 
-// TODO Review / Adapt
-// function parseHash() {
-//   if(window.location.hash) {
-//     var hash = decodeURI(window.location.hash.substring(1));
-//     var data = null;
-//
-//     console.log(hash);
-//
-//     try {
-//       data = JSON.parse(hash);
-//       console.log(data);
-//     }
-//     catch(err) {
-//       return;
-//     }
-//
-//     for(dataset in data) {
-//       for(ii in data[dataset]) {
-//         loadTrace(dataset, data[dataset][ii]);
-//       }
-//     }
-//   }
-// }
+function parseHash() {
+  if(window.location.hash) {
+    var hash = decodeURI(window.location.hash.substring(1));
+    var data = null;
 
-// TODO Review / Adapt
-// function createShareLink() {
-//   var base = window.location.href.split("#")[0];
-//   var selection = {}
-//   for(tt in TCTBrowser.plot.traces) {
-//     var entry = TCTBrowser.plot.traces[tt];
-//     var dataset = entry[0];
-//     var id = entry[1];
-//
-//     if(!(dataset in selection)) {
-//       selection[dataset] = [];
-//     }
-//
-//     selection[dataset].push(id);
-//   }
-//
-//   return base + '#' + encodeURI(JSON.stringify(selection));
-// }
+    console.log(hash);
 
-function sliderCallback() {
-  // TODO Collect all parameters
+    try {
+      data = JSON.parse(hash);
+      console.log(data);
+    }
+    catch(err) {
+      return;
+    }
+
+    var param = data['param'];
+    for (var key in TCTBrowser.sliders) {
+      if(key in param) {
+        SliderSetValue(TCTBrowser.sliders[key], param[key]);
+      }
+    }
+    for (var key in TCTBrowser.select) {
+      if(key in param) {
+        SelectSetValue(TCTBrowser.select[key], param[key]);
+      }
+    }
+
+    if(data['trace'] != null && data['trace'].length == 2) {
+      selectDataset(data['trace'][0], function() {
+        selectScan(data['trace'][1]);
+      });
+    }
+  }
+}
+
+function createShareLink() {
+  var base = window.location.href.split("#")[0];
+  var config = {}
+
+  config['trace'] = TCTBrowser.plot.trace;
+
   var param = {};
   for (var key in TCTBrowser.sliders) {
-    param[key] = SliderValue(TCTBrowser.sliders[key])
+    param[key] = SliderValue(TCTBrowser.sliders[key]);
   }
   for (var key in TCTBrowser.select) {
-    param[key] = SelectValue(TCTBrowser.select[key])
+    param[key] = SelectValue(TCTBrowser.select[key]);
+  }
+
+  config['param'] = param;
+
+  return base + '#' + encodeURI(JSON.stringify(config));
+}
+
+function sliderCallback() {
+  var param = {};
+  for (var key in TCTBrowser.sliders) {
+    param[key] = SliderValue(TCTBrowser.sliders[key]);
+  }
+  for (var key in TCTBrowser.select) {
+    param[key] = SelectValue(TCTBrowser.select[key]);
   }
 
 
@@ -214,28 +247,28 @@ function init() {
 
   createTable(TCTBrowser.dataset_table);
   loadDatasets();
-  // parseHash();
+  parseHash();
 }
 
 
-// function copyToClipboard(textToCopy) {
-//     if (navigator.clipboard && window.isSecureContext) {
-//         return navigator.clipboard.writeText(textToCopy);
-//     } else {
-//         // text area method
-//         var textArea = document.createElement("textarea");
-//         textArea.value = textToCopy;
-//         textArea.style.position = "absolute";
-//         textArea.style.opacity = 0;
-//         document.body.appendChild(textArea);
-//         textArea.select();
-//         return new Promise((res, rej) => {
-//             // here the magic happens
-//             document.execCommand('copy') ? res() : rej();
-//             textArea.remove();
-//         });
-//     }
-// }
+function copyToClipboard(textToCopy) {
+    if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(textToCopy);
+    } else {
+        // text area method
+        var textArea = document.createElement("textarea");
+        textArea.value = textToCopy;
+        textArea.style.position = "absolute";
+        textArea.style.opacity = 0;
+        document.body.appendChild(textArea);
+        textArea.select();
+        return new Promise((res, rej) => {
+            // here the magic happens
+            document.execCommand('copy') ? res() : rej();
+            textArea.remove();
+        });
+    }
+}
 
 
 function initSliders() {
@@ -261,13 +294,13 @@ function initSliders() {
 
 $(document).ready(function() {
   TCTBrowser.dataset_table.obj = $('#dataset_list > table');
-  TCTBrowser.dataset_table.onclick = selectDataset;
+  TCTBrowser.dataset_table.onclick = clickDataset;
   TCTBrowser.dataset_table.isselected = function(id) {
       return id == TCTBrowser.selected_dataset
   };
 
   TCTBrowser.scan_table.obj = $('#entry_list > table');
-  TCTBrowser.scan_table.onclick = selectScan;
+  TCTBrowser.scan_table.onclick = clickScan;
   TCTBrowser.scan_table.isselected = function(id) {
     // TODO Does comparison of lists work like this?!?
     return TCTBrowser.plot.trace == [TCTBrowser.selected_dataset, id];
@@ -284,10 +317,9 @@ $(document).ready(function() {
     clearPlot(TCTBrowser.plot);
     TCTBrowser.scan_table.obj.find('tbody tr').removeClass('selected');
   });
-  // TODO Review
-  // $('#btn_share').click(function(){
-  //   copyToClipboard(createShareLink());
-  // });
+  $('#btn_share').click(function(){
+    copyToClipboard(createShareLink());
+  });
 
   init();
 });

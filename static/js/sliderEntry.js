@@ -54,9 +54,25 @@ function SliderInit(dom_obj, value_range, value_default, step, slider_cb, factor
     default: value_default,
     step: step,
     factor: factor,
+    input: input,
+    slider: slider
   };
 
   return entry;
+}
+
+function SliderSetValue(slider, value) {
+  value = value/slider.factor;
+
+  slider.input.val(value);
+
+  if(value < slider.range[0]) {
+    slider.slider.slider("option", "value", slider.range[0]);
+  } else if(value > slider.range[1]) {
+    sliderslider.slider("option", "value", slider.range[1]);
+  } else {
+    slider.slider.slider("option", "value", value);
+  }
 }
 
 function SliderValue(slider) {
