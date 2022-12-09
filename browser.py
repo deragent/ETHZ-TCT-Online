@@ -224,9 +224,10 @@ def runSimulation(type, Vbias, Na, Neh, pos, C):
         # From absorption coef of wavelength of 660nm: https://refractiveindex.info/?shelf=main&book=Si&page=Aspnes
         charges = charge.exponential(Neh, -503e-6, 3.4148e-6)
     elif type == 'p-alpha':
-        # Penetration depth assumed ca. 30um (from "Roadmap for High Efficiency Solid-State Neutron Detectors (2005)")
-        # Assume somehow exponential distribution with peak at penetration depth
-        charges = charge.exponential(Neh, -503e-6 + 30e-6, -6e-6)
+        # Based on fit to TRIM simulation (using pybragg)
+        # For Am-241 alpha in default config: pos ~ -503e-6 + 20.5e-6
+        # Neh allows to scale amplitude easily
+        charges = charge.alpha(Neh, pos, surface=-503e-6)
     else: # 'edge-ir'
         charges = charge.normal(Neh, pos, 10.7e-6)
 
