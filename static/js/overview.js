@@ -23,6 +23,20 @@ function showPlotFile(dataset, idx) {
   object.appendTo(plot);
 }
 
+function showLog(dataset) {
+  var plot = $('#plot_view');
+
+  plot.empty()
+
+  $.getJSON(BASE_URL + "dataset/"+dataset+"/log", function(data){
+    var view = $('<div>').attr('id', 'log_view');
+    var log = $('<pre>').html(data.log);
+
+    log.appendTo(view);
+    view.appendTo(plot);
+  });
+}
+
 // Event handling functions
 function selectDataset() {
   $(this).addClass('selected').siblings().removeClass('selected');
@@ -65,10 +79,23 @@ function showDataset(id) {
     tr.append($('<td>').text(text));
     tr.appendTo(info);
 
-    // Present
+    // Present the config file
     var config = $('#dataset_config code');
     config.text(data.config_file);
 
+    // Create the show log entry
+    var log_list = $('#dataset_logs ul');
+    log_list.empty();
+
+    var li = $('<li>').addClass('list-group-item')
+      .text('Show the log file');
+    li.click(function() {
+      showLog(id);
+    });
+    li.appendTo(log_list);
+
+
+    // Create the list of available plots
     $.getJSON(BASE_URL + "dataset/"+id+"/plot", function(data_plots){
       var list = $('#dataset_plots ul');
       list.empty();

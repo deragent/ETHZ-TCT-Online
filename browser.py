@@ -161,6 +161,14 @@ def datasetZipGenerator(folder):
             break
         yield buf
 
+@app.route("/dataset/<dataset>/log")
+def showLog(dataset):
+    scan = cache.get().scan(dataset)
+    if scan is None:
+        flask.abort(404)
+
+    return {'log': scan.log() }
+
 @app.route("/dataset/<dataset>/download")
 def downloadDataset(dataset):
     scan = cache.get().scan(dataset)
