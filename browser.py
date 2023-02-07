@@ -10,7 +10,7 @@ import numpy as np
 
 from analysis.data import DataDirCollection
 
-from analysis.simulation.signal import Run2_PNBonded
+from analysis.simulation.signal import Run2_PNBonded_Extended
 from analysis.simulation.signal.util import charge
 
 
@@ -225,8 +225,9 @@ def getCurve(dataset, id):
     }
 
 
-def runSimulation(type, Vbias, Na, Neh, pos, C):
-    sim = Run2_PNBonded.createChargePropagationSimulation(Vbias, Na=Na)
+def runSimulation(type, Vbias, Na, Neh, pos, C, RhoP, RhoN):
+    t_start = time.time()
+    sim = Run2_PNBonded_Extended.createChargePropagationSimulation(Vbias, Na=Na, C=C, RhoP=RhoP, RhoN=RhoN)
 
     if type == 'p-red':
         # From absorption coef of wavelength of 660nm: https://refractiveindex.info/?shelf=main&book=Si&page=Aspnes
@@ -239,13 +240,7 @@ def runSimulation(type, Vbias, Na, Neh, pos, C):
     else: # 'edge-ir'
         charges = charge.normal(Neh, pos, 10.7e-6)
 
-    total = sim.run(charges, retEH=False)
-    total = total.resample(50e-12)
-
-    R = 50
-    fc = 1/(2*np.pi*C*R)
-    gain = 50*(10**(53/20))
-    return total.filterLowPass(fc, gain)
+    return sim.run(charges, retEH=False)
 
 @app.route("/simulation/compare/<dataset>/<int:id>")
 def compareSimulation(dataset, id):
@@ -265,7 +260,9 @@ def compareSimulation(dataset, id):
         'Vbias': 200.0,           # V
         'C': 23e-12,            # F
         'Neh': 8e5,             # [-]
-        'Laser': -200e-6        # m
+        'Laser': -200e-6,       # m
+        'rhoP': 21.4,           # Ohm m
+        'rhoN': 10              # Ohm m
     }
 
     ## Probably handle this in the frontend!
@@ -300,7 +297,10 @@ def compareSimulation(dataset, id):
     amplitude -= param['offset']
 
     # Run simulation
-    total = runSimulation(param['type'], param['Vbias'], param['Na'], param['Neh'], param['Laser'], param['C'])
+    total = runSimulation(
+        param['type'], param['Vbias'], param['Na'],
+        param['Neh'], param['Laser'], param['C'],
+        param['rhoP'], param['rhoN'])
 
     # Calculate difference
     data_start = np.argmax(data_time >= total.time()[0])

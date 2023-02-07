@@ -289,6 +289,10 @@ function initSliders() {
   TCTBrowser.sliders['C'] = SliderInit($('#param_c'), [1, 100], 23.0, 0.5, sliderCallback, 1e-12, 'Cp', 'pF');
   TCTBrowser.sliders['Neh'] = SliderInit($('#param_neh'), [0.5, 20], 8, 0.1, sliderCallback, 1e5, 'Neh', '10⁵');
   TCTBrowser.sliders['Laser'] = SliderInit($('#param_laser'), [-500, 0], -200.0, 1, sliderCallback, 1e-6, 'Position', 'um');
+
+  // Extended Ramo theorem
+  TCTBrowser.sliders['rhoP'] = SliderInit($('#param_rho_p'), [0, 100], 21.4, 1, sliderCallback, 1e3*1e-2, 'P-Side', 'kOhm cm');
+  TCTBrowser.sliders['rhoN'] = SliderInit($('#param_rho_n'), [0, 100], 10, 1, sliderCallback, 1e3*1e-2, 'N-Side', 'kOhm cm');
 }
 
 
