@@ -162,12 +162,16 @@ function selectScan(id) {
   sliderCallback();
 }
 
-function loadDatasets() {
+function loadDatasets(cb=null) {
     $.getJSON(BASE_URL + "dataset", function(data) {
       TCTBrowser.dataset_table.data = data;
       fillTable(TCTBrowser.dataset_table, {});
 
-      resetFilter(TCTBrowser.dataset_table)
+      resetFilter(TCTBrowser.dataset_table);
+
+      if(cb != null){
+        cb();
+      }
     });
 }
 
@@ -198,8 +202,18 @@ function parseHash() {
       }
     }
 
+    // Apply the dataset table filters
+    if('filters' in data && 'dataset' in data['filters']) {
+      setTableFilters(TCTBrowser.dataset_table, data['filters']['dataset'])
+    }
+
     if(data['trace'] != null && data['trace'].length == 2) {
       selectDataset(data['trace'][0], function() {
+        // Apply the scan table filters
+        if('filters' in data && 'scan' in data['filters']) {
+          setTableFilters(TCTBrowser.scan_table, data['filters']['scan'])
+        }
+
         selectScan(data['trace'][1]);
       });
     }
@@ -221,6 +235,10 @@ function createShareLink() {
   }
 
   config['param'] = param;
+
+  config['filters'] = {};
+  config['filters']['dataset'] = getTableFilters(TCTBrowser.dataset_table);
+  config['filters']['scan'] = getTableFilters(TCTBrowser.scan_table);
 
   return base + '#' + encodeURI(JSON.stringify(config));
 }
@@ -246,8 +264,9 @@ function init() {
   initPlot(TCTBrowser.plot);
 
   createTable(TCTBrowser.dataset_table);
-  loadDatasets();
-  parseHash();
+  loadDatasets(function(){
+    parseHash();
+  });
 }
 
 
