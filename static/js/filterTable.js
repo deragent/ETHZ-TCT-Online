@@ -95,3 +95,26 @@ function enableTableFilter(table) {
     fillTable(table, filters);
   });
 }
+
+function getTableFilters(table) {
+  var filters = {};
+  table.obj.find('thead input').each(function(i, obj) {
+    var filter = $(this).val();
+
+    if(filter) {
+      filters[$(this).attr('data-key')] = filter;
+    }
+  });
+  return filters;
+}
+
+function setTableFilters(table, filters) {
+  table.obj.find('thead input').each(function(i, obj) {
+    var key = $(this).attr('data-key');
+    if(key in filters) {
+      $(this).val(filters[key])
+    }
+  });
+
+  table.obj.find('thead input').first().trigger('change');
+}
