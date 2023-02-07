@@ -281,7 +281,7 @@ def compareSimulation(dataset, id):
 
     # Get parameters from request
     for key in param:
-        if type(param[key]) == float:
+        if type(param[key]) == float or type(param[key]) == int:
             param[key] = flask.request.args.get(key, default=param[key], type=float)
         else:
             param[key] = flask.request.args.get(key, default=param[key], type=str)
