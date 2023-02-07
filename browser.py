@@ -249,6 +249,8 @@ def runSimulation(type, Vbias, Na, Neh, pos, C):
 
 @app.route("/simulation/compare/<dataset>/<int:id>")
 def compareSimulation(dataset, id):
+    t_start = time.time()
+
     TYPES = ['edge-ir', 'p-red', 'p-alpha']
 
     # Set default parameters
@@ -290,18 +292,18 @@ def compareSimulation(dataset, id):
     # Get the curve data
     data = getCurveData(dataset, id)
 
-    time = data[0, :]
+    data_time = data[0, :]
     amplitude = data[1, :]
 
     # Apply T0 and offset to data
-    time -= param['T0']
+    data_time -= param['T0']
     amplitude -= param['offset']
 
     # Run simulation
     total = runSimulation(param['type'], param['Vbias'], param['Na'], param['Neh'], param['Laser'], param['C'])
 
     # Calculate difference
-    data_start = np.argmax(time >= total.time()[0])
+    data_start = np.argmax(data_time >= total.time()[0])
 
     # Calculate maximum number of simulation sample to use
     n_sim = len(total.time())
@@ -315,17 +317,22 @@ def compareSimulation(dataset, id):
 
     difference = amplitude - sim_amplitude
 
+    t_stop = time.time()
+
+    print('Total', f'{(t_stop - t_start)*1e3:.0f} ms')
+
     return {
-        'time': list(time*1e9),
+        'time': list(data_time*1e9),
         'data': list(amplitude*1e3),
         'simulation': list(sim_amplitude*1e3),
         'difference': list(difference*1e3),
         'integral': {
-            'data': np.trapz(amplitude, time)*1e9,
-            'simulation': np.trapz(sim_amplitude, time)*1e9,
-            'difference': np.trapz(difference, time)*1e9,
+            'data': np.trapz(amplitude, data_time)*1e9,
+            'simulation': np.trapz(sim_amplitude, data_time)*1e9,
+            'difference': np.trapz(difference, data_time)*1e9,
         },
         'meta': {
             'parameter': param,
+            '_time': t_stop - t_start
         }
     }
