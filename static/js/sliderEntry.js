@@ -2,18 +2,10 @@ function SliderInit(dom_obj, value_range, value_default, step, slider_cb, factor
   var slider = $('<div>').addClass('slider');
 
   var input = $('<input>').addClass('slidervalue').attr('type', 'text');
-  var inputgroup = $('<div>').addClass('input-group')
-  inputgroup.append(
-      $('<div>').append(
-          $('<span>').addClass('input-group-text').text(label)
-      ).addClass('input-group-prepend')
-  )
+  var inputgroup = $('<div>').addClass('input-group').addClass('input-group-sm');
+  inputgroup.append($('<span>').addClass('input-group-text').text(label))
   .append(input.addClass('form-control'))
-  .append(
-      $('<div>').append(
-          $('<span>').addClass('input-group-text').text(unit)
-      ).addClass('input-group-append')
-  );
+  .append($('<span>').addClass('input-group-text').text(unit));
 
   input.val(value_default);
 
@@ -43,8 +35,8 @@ function SliderInit(dom_obj, value_range, value_default, step, slider_cb, factor
   dom_obj.append(
     $('<div>').addClass('container-fluid').append(
       $('<div>)').addClass('row').addClass('align-items-center')
-        .append($('<div>').addClass('input-wrapper').addClass('col-4').append(inputgroup))
-        .append($('<div>').addClass('slider-wrapper').addClass('col-8').append(slider))
+        .append($('<div>').addClass('input-wrapper').addClass('col-6').append(inputgroup))
+        .append($('<div>').addClass('slider-wrapper').addClass('col-6').append(slider))
     )
   );
 

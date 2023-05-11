@@ -1,6 +1,8 @@
 function createTable(table) {
-  table.obj.find('thead').empty()
-  table.obj.find('tbody').empty()
+  table.obj.addClass('table-sm');
+
+  table.obj.find('thead').empty();
+  table.obj.find('tbody').empty();
 
   var tr = $('<tr class="filters">')
   for(cc in table.columns) {

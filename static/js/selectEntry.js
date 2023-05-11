@@ -8,12 +8,8 @@ function SelectInit(dom_obj, value_choices, value_default, select_cb, label='') 
     select.append(option);
   });
 
-  var inputgroup = $('<div>').addClass('input-group')
-  inputgroup.append(
-      $('<div>').append(
-          $('<span>').addClass('input-group-text').text(label)
-      ).addClass('input-group-prepend')
-  )
+  var inputgroup = $('<div>').addClass('input-group').addClass('input-group-sm')
+  inputgroup.append($('<span>').addClass('input-group-text').text(label))
   .append(
     select.addClass('form-control')
   );
@@ -27,7 +23,7 @@ function SelectInit(dom_obj, value_choices, value_default, select_cb, label='') 
   dom_obj.append(
     $('<div>').addClass('container-fluid').append(
       $('<div>)').addClass('row').addClass('align-items-center')
-        .append($('<div>').addClass('input-wrapper').addClass('col-4').append(inputgroup))
+        .append($('<div>').addClass('input-wrapper').addClass('col-6').append(inputgroup))
     )
   );
 
